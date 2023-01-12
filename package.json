@@ -8,7 +8,10 @@
     "build": "babel ./src --out-dir build",
     "start": "nodemon --exec babel-node ./build/app.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "eslint ./src --fix"
+    "lint": "eslint ./src --fix",
+    "lint:check": "eslint ./src",
+    "prettier": "prettier ./src --write",
+    "prettier:check": "prettier ./src --check"
   },
   "repository": {
     "type": "git",
@@ -21,9 +24,19 @@
   },
   "homepage": "https://github.com/DamienDrozd/Evaluation_API_ExpressJS#readme",
   "dependencies": {
+    "@babel/core": "^7.20.12",
+    "@babel/node": "^7.20.7",
+    "@babel/preset-env": "^7.20.2",
     "dotenv": "^16.0.3",
-    "eslint": "^8.31.0",
     "express": "^4.18.2",
     "mongoose": "^6.8.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.31.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-config-prettier": "^8.6.0",
+    "eslint-plugin-import": "^2.27.4",
+    "eslint-plugin-prettier": "^4.2.1",
+    "prettier": "^2.8.2"
   }
 }

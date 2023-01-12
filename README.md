@@ -7,21 +7,23 @@
 
 ## Liste des routes :
 ### Routes de connexion : 
-- Login Freelance
+- Login 
 - Register Freelance
 - Register Company
-- Login Company
-- Login Admin
+- Change Password
+- Forgot password
+- Delete_User
 
 ### Route Sans Connexion
+- Get All Skills
+- Get Skill
+- Get All Jobs
+- Get Job
 ### Route Freelance
 - Voir les propositions
-- Accepter une proposition
+- Accepter une proposition 
 - Refuser une proposition
 - Change profile
-- Change password
-  - Old password
-  - New password
 - Forgot password
 
 ### Routes Company
@@ -69,8 +71,9 @@
 - description - String
 - job_key - key
 - skill_keys - key_tab
-- status - String
 - Proposition_Keys - key-tab
+- status - String
+
 
 ### Proposition
 - user
@@ -78,7 +81,6 @@
 
 ------------------------------------------------------------
 
-------------------------------------------------------------
 
 ### User Account
 - firstname - String
@@ -115,16 +117,18 @@
 Création de l'app
 Structure du code
 Mongoose création
-
-## A faire
 Linter 
 Prettier
 Build
 écrire les requètes sur postman
+
+
+## A faire
+faire le schema bdd nosql
 Structurer les routes
 Faire les modeles
 Remplir la base de données
-middleware requests
 Authentification + middleware auth
 Création de l'aministrateur
+middleware error handling
 Envoi d'email au register (user et admin)
