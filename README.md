@@ -121,14 +121,29 @@ Linter
 Prettier
 Build
 écrire les requètes sur postman
-
-
-## A faire
 faire le schema bdd nosql
 Structurer les routes
 Faire les modeles
-Remplir la base de données
-Authentification + middleware auth
+Faire les fakers
+Authentification 
+Crud job
+Crud Skill
+Crud mission
+Crud proposition
+
+## A faire
+
+Crud User 
+
+middleware auth
+middleware freelance
+middleware company
+middleware admin
+middleware validators
 Création de l'aministrateur
 middleware error handling
+Gérer les permissions sur les routes
+Tester tous les CRUDS
+Recherche
 Envoi d'email au register (user et admin)
+Mot de passe oublié
