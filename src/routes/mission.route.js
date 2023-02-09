@@ -2,17 +2,34 @@ const express = require('express');
 
 const router = express.Router();
 const missionController = require('../controllers/mission.controller');
+const proposalController = require('../controllers/proposal.controller');
 const verifyToken = require('../middlewares/verifyToken');
+const verifyCompany = require('../middlewares/verifyCompany');
+const verifyAdmin = require('../middlewares/verifyAdmin');
 
 
-router.get('/', missionController.getMissions);
 
-router.get('/:id', missionController.getMission);
+router.get('/', verifyToken, verifyCompany, missionController.getMissions);
 
-router.post('/', missionController.postMission);
+router.get('/:id', verifyToken, verifyCompany, missionController.getMission);
 
-router.put('/:id', missionController.updateMission)
+router.post('/', verifyToken, verifyCompany, missionController.postMission);
 
-router.delete('/:id', missionController.deleteMission);
+router.put('/:id', verifyToken, verifyCompany, missionController.updateMission)
+
+router.delete('/:id', verifyToken, verifyCompany, missionController.deleteMission);
+
+//-------------------------Freelance-------------------------------
+
+router.get('/freelance/', verifyToken, missionController.getFreelanceMissions);
+
+router.get('/freelance/:id', verifyToken, missionController.getFreelanceMission);
+
+// -------------------------Admin-----------------------------------
+
+router.get('/admin/freelance/:id', verifyToken, verifyAdmin, missionController.getAdminFreelanceMission);
+
+router.get('/admin/company/:id', verifyToken, verifyAdmin, missionController.getAdminCompanyMission);
+
 
 module.exports = router;

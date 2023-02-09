@@ -1,5 +1,5 @@
 const errorHandler = (err, req, res, next) => {
-  console.log(err);
+  console.log("middleware error : ", err);
   if (!err.statusCode) {
     err.statusCode = 500;
   }

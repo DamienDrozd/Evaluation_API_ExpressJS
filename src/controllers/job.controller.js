@@ -30,10 +30,9 @@ exports.postJob = async (req, res, next) => {
 };
 
 exports.updateJob = async (req, res, next) => {
-    Job.findById(req.params.id).then((job) => {
-        job.name = req.body.name;
-        job.save().then((job) => {
-            res.send(job);
+    Job.findByIdAndUpdate(req.params.id, req.body).then((job) => {
+        Job.findById(job._id).then((jobupdated) => {
+            res.send(jobupdated);
         }).catch((error) => {
             next(error);
         });

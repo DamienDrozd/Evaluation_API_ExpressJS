@@ -11,10 +11,10 @@ const companySchema = new mongoose.Schema({
         date : {
             start : { type: Date, default: Date.now },
             end : { type: Date, default: Date.now }
-        }}],
-        price : {type: Number, required: true},
-        title: {type: String, required: true},
-        description: {type: String, required: true},
+        },
+        price : {type: Number},
+        title: {type: String},
+        description: {type: String},
         skills: [{
             type: mongoose.Schema.Types.ObjectId,
             ref: "Skill"
@@ -27,7 +27,12 @@ const companySchema = new mongoose.Schema({
             type: mongoose.Schema.Types.ObjectId,
             ref: "Proposal"
         }],
+        freelance: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User"
+        },
         mission_status: {type: String, default: "En cours"},
+    }],
 });
 
 module.exports = mongoose.model('Company', companySchema);

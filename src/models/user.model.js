@@ -23,8 +23,9 @@ const userSchema = new mongoose.Schema({
         }],
     },
     company: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Company"
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Company",
+        default: null
     },
 });
 

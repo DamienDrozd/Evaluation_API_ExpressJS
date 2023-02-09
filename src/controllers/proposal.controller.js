@@ -1,5 +1,7 @@
 const Company = require("../models/company.model.js");
 const Proposal = require("../models/proposal.model.js");
+const MailClient = require('../functions/mail');
+
 
 
 
@@ -23,20 +25,49 @@ exports.getFreelanceProposal = async (req, res, next) => {
 };
 
 exports.acceptProposal = async (req, res, next) => {
+    const mail = new MailClient();
     Proposal.find({user: req.userToken.userId}).then((proposals) => {
         let proposal = proposals.find(proposal => proposal._id == req.params.id);
         proposal.status = "accepted";
-        res.send(proposal);
+        Company.findById(proposal.company).then((company) => {
+            let mission = company.missions.find((mission) => mission._id == proposal.mission);
+            mission.status = "accepted";
+            mission.freelance = proposal.user;
+            mission.proposals = [];
+            res.send(proposal);
+            User.find({company: company._id}).then((users) => {
+                users.forEach((user) => {
+                    mail.sendMail(user.email, "Mission accepted", "Your mission has been accepted by a freelance");
+                });
+            }).catch((error) => {
+                next(error);
+            });
+        }).catch((error) => {
+            next(error);
+        });
     }).catch((error) => {
         next(error);
     });
 };
 
 exports.denyProposal = async (req, res, next) => {
+    const mail = new MailClient();
     Proposal.find({user: req.userToken.userId}).then((proposals) => {
         let proposal = proposals.find(proposal => proposal._id == req.params.id);
         proposal.status = "denied";
-        res.send(proposal);
+        Company.findById(proposal.company).then((company) => {
+            let mission = company.missions.find((mission) => mission._id == proposal.mission);
+            mission.proposals = mission.proposals.filter((proposal) => proposal._id != req.params.id);
+            User.find({company: company._id}).then((users) => {
+                users.forEach((user) => {
+                    mail.sendMail(user.email, "Mission denied", "Your mission has been denied by a freelance");
+                });
+            }).catch((error) => {
+                next(error);
+            });
+        }).catch((error) => {
+            next(error);
+        });
     }).catch((error) => {
         next(error);
     });
@@ -54,6 +85,15 @@ exports.getCompanyProposals = async (req, res, next) => {
     });
 };
 
+exports.getMissionProposals = async (req, res, next) => {
+    Company.findById(req.userToken.companyId).then((company) => {
+        let mission = company.missions.find((mission) => mission._id == req.params.id);
+        res.send(mission.proposals);
+    }).catch((error) => {
+        next(error);
+    });
+};
+
 exports.getCompanyProposal = async (req, res, next) => {
     Proposal.find({company: req.userToken.companyId}).then((proposals) => {
         let proposal = proposals.find(proposal => proposal._id == req.params.id);
@@ -64,25 +104,41 @@ exports.getCompanyProposal = async (req, res, next) => {
 };
 
 exports.postProposal = async (req, res, next) => {
-    Company.findById(req.userToken.companyId).then((company) => {
-        Proposal.create({
-            user: req.userToken.userId,
-            company: company._id,
-            price: req.body.price,
-            date: {
-                start: req.body.date.start,
-                end: req.body.date.end
-            },
-        }).then((proposal) => {
-            company.missions.find((mission) => mission._id == req.body.mission_id).proposals.push(proposal._id);
-            company.save();
-            res.send(proposal);
+    try {
+        const mail = new MailClient();
+        Company.findById(req.userToken.companyId).then((company) => {
+            Proposal.create({
+                user: req.params.id,
+                company: company._id,
+                price: req.body.price,
+                date: {
+                    start: req.body.date.start,
+                    end: req.body.date.end
+                },
+            }).then((proposal) => {
+                if (company.missions.find((mission) => mission._id == req.body.mission_id).proposals.length >= 3) {
+                    res.status(400).send({
+                        message: "You can't post more than 3 proposals for a mission"
+                    });
+                } else {
+                    company.missions.find((mission) => mission._id == req.body.mission_id).proposals.push(proposal._id);
+                    company.save();
+                    User.findById(req.params.id).then((user) => {
+                        mail.send(user.email, "New proposal", "You have a new proposal for your mission " + company.missions.find((mission) => mission._id == req.body.mission_id).title);
+                    }).catch((error) => {
+                        next(error);
+                    });
+                    res.send(proposal);
+                }
+            }).catch((error) => {
+                next(error);
+            });
         }).catch((error) => {
             next(error);
         });
-    }).catch((error) => {
+    } catch (error) {
         next(error);
-    });
+    }
 };
 
 exports.updateProposal = async (req, res, next) => {
@@ -110,3 +166,47 @@ exports.deleteProposal = async (req, res, next) => {
         next(error);
     });
 };
+
+
+
+//-------------------------Admin-------------------------------
+
+exports.getAdminCompanyProposal = async (req, res, next) => {
+    Company.find().then((companies) => {
+        let missions = [];
+        companies.forEach((company) => {
+            company.missions.forEach((mission) => {
+                missions.push(mission);
+            });
+        });
+        res.send(missions);
+    }).catch((error) => {
+        next(error);
+    });
+};
+
+
+exports.getAdminMissionProposal = async (req, res, next) => {
+    Company.find().then((companies) => {
+        let mission = null;
+        companies.forEach((company) => {
+            company.missions.forEach((m) => {
+                if (m._id == req.params.id) {
+                    mission = m;
+                }
+            });
+        });
+        res.send(mission);
+    }).catch((error) => {
+        next(error);
+    });
+}
+
+exports.getAdminFreelanceProposal = async (req, res, next) => {
+    Proposal.find().then((proposals) => {
+        res.send(proposals);
+    }).catch((error) => {
+        next(error);
+    });
+};
+

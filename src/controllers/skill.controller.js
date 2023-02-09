@@ -30,10 +30,9 @@ exports.postSkill = async (req, res, next) => {
 };
 
 exports.updateSkill = async (req, res, next) => {
-    Skill.findById(req.params.id).then((skill) => {
-        skill.name = req.body.name;
-        skill.save().then((skill) => {
-            res.send(skill);
+    Skill.findByIdAndUpdate(req.params.id, req.body).then((skill) => {
+        Skill.findById(skill._id).then((skillupdated) => {
+            res.send(skillupdated);
         }).catch((error) => {
             next(error);
         });
@@ -44,7 +43,7 @@ exports.updateSkill = async (req, res, next) => {
 
 exports.deleteSkill = async (req, res, next) => {
     Skill.findByIdAndDelete(req.params.id).then((skill) => {
-        res.send(skill);
+        res.send({skill : skill, message: 'deleted'});
     }).catch((error) => {
         next(error);
     });

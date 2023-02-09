@@ -8,18 +8,7 @@ const jobModel = require('../models/job.model');
 
 // import { faker } from '@faker-js/faker/locale/de';
  
-const createRandomCompany = () => {
-  return {
-    name: faker.company.companyName(),
-    status: "SARL",
-    siret: faker.random.numeric(14),
-    address: faker.address.streetAddress(),
-    city: faker.address.city(),
-    postcode: faker.address.zipCode(),
 
-
-  };
-}
 
 const createRandomUser = () => {
   return {
@@ -29,11 +18,14 @@ const createRandomUser = () => {
     password: faker.internet.password(),
     address: faker.address.streetAddress(),
     city: faker.address.city(),
-    postcode: faker.address.zipCode(),
+    postCode: faker.address.zipCode(),
     phone: faker.phone.number(),
-    isAdmin: false,
-    company: null,
-    isFake: true
+    companyName: faker.company.companyName(),
+    companyStatus: "SARL",
+    companySiret: faker.random.numeric(14),
+    companyAddress: faker.address.streetAddress(),
+    companyCity: faker.address.city(),
+    companyPostCode: faker.address.zipCode(),
   };
 }
 
@@ -45,12 +37,7 @@ const createRandomMission = () => {
     date : {start : faker.date.past(), stop : faker.date.future()},
     mission_status: "En cours",
     skills: [skillModel.find().limit(5)],
-    jobs: [jobModel.find().limit(5)],
-    proposals: [{
-        user : User.find().limit(1),
-        status : "En cours",
-        date : { type: Date, default: Date.now },
-    }],
+    jobs: [jobModel.find().limit(5)]
   };
 }
 
@@ -58,11 +45,9 @@ const createRandomMission = () => {
 
 for (let i = 0; i < 5; i++){
     let randomUser = createRandomUser();
-    randomUser.company = createRandomCompany();
     console.log(randomUser);
 
-    const user = new User(randomUser);
-    // let link = 'http://localhost:3001/api/user';
-    // axios.post(link, user)
+    let link = 'http://localhost:3000/api/auth/register/company';
+    axios.post(link, randomUser)
  
-} 
+}  
