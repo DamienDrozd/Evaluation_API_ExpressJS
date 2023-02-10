@@ -6,6 +6,7 @@ const proposalController = require('../controllers/proposal.controller');
 const verifyToken = require('../middlewares/verifyToken');
 const verifyCompany = require('../middlewares/verifyCompany');
 const verifyAdmin = require('../middlewares/verifyAdmin');
+const verifyFreelance = require('../middlewares/verifyFreelance');
 
 
 
@@ -21,9 +22,9 @@ router.delete('/:id', verifyToken, verifyCompany, missionController.deleteMissio
 
 //-------------------------Freelance-------------------------------
 
-router.get('/freelance/', verifyToken, missionController.getFreelanceMissions);
+router.get('/freelance/', verifyToken, verifyFreelance, missionController.getFreelanceMissions);
 
-router.get('/freelance/:id', verifyToken, missionController.getFreelanceMission);
+router.get('/freelance/:id', verifyToken, verifyFreelance, missionController.getFreelanceMission);
 
 // -------------------------Admin-----------------------------------
 

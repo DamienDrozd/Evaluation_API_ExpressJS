@@ -29,7 +29,7 @@ router.get('/company/', verifyToken, verifyCompany, proposalController.getCompan
 
 router.get('/company/mission/:id', verifyToken, verifyCompany, proposalController.getMissionProposals); 
 
-router.get('/company/:id', proposalController.getCompanyProposal);
+router.get('/company/:id', verifyToken, verifyCompany, proposalController.getCompanyProposal);
 
 router.post('/company/:id', verifyToken, verifyCompany, proposalController.postProposal);
 

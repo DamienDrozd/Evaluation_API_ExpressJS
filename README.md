@@ -30,16 +30,13 @@ middleware admin
 Gérer les permissions sur les routes
 Envoi d'email au register (user et admin) et lors d'une proposition (envoi et acceptation)
 Filter (mongoose query)
+Vérifier permissions
 
 
 ## A faire
 
-
+middleware validators
 Mot de passe oublié
 Lancer les faker - (manque freelance user)
 Tester tous les CRUDS (mission - proposition)
 tester recherche
-
-Vérifier permissions
-empècher les chargements infinis
-middleware validators

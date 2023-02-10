@@ -5,7 +5,8 @@ const MailClient = require('../functions/mail');
 
 
 exports.getMissions = async (req, res, next) => {
-    Company.findById(req.userToken.companyId).then((company) => {
+    Company.findById(req.userToken.companyId)
+    .then((company) => {
         res.send(company.missions);
     }).catch((error) => {
         next(error);
@@ -42,15 +43,9 @@ exports.postMission = async (req, res, next) => {
 
 exports.updateMission = async (req, res, next) => {
     Company.findById(req.userToken.companyId).then((company) => {
-        let mission = company.missions.find((mission) => mission._id == req.params.id);
-        mission.name = req.body.name;
-        mission.description = req.body.description;
-        mission.price = req.body.price;
-        mission.date.start = req.body.date.start;
-        mission.date.end = req.body.date.end;
-        mission.job = req.body.job;
-        mission.skills = req.body.skills;
-        res.send(company.missions);
+        const mission = company.missions.find((mission) => mission._id == req.params.id);
+        mission.name = req.body
+        res.send(mission);
     }).catch((error) => {
         next(error);
     });

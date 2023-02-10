@@ -151,6 +151,7 @@ exports.login = async (req, res, next) => {
             let userToken = jwt.sign(
                 {
                     id: user._id,
+                    companyId: user.company,
                     isAdmin: user.isAdmin,
                     isFreelance: isFreelance,
                     isCompany: isCompany, 
@@ -173,7 +174,36 @@ exports.login = async (req, res, next) => {
 };
 
 exports.change_password = async (req, res, next) => {
-    return res.send("success");
+    try {
+        const oldPassword = req.body.oldPassword;
+        const newPassword = req.body.newPassword;
+        const email = req.body.email;
+
+        User.findOne({ email: email }).then((user) => {
+            let passwordIsValid = bcrypt.compareSync(oldPassword, user.password);
+            if (!passwordIsValid) {
+                return res.status(401).send({
+                message: "Password Is Not valid",
+                auth: false,
+                });
+            }
+            const hashedPassword = bcrypt.hashSync(newPassword, 11);
+            user.password = hashedPassword;
+            user.save().then((user) => {
+                res.send({
+                    message: "User " + user._id + " successfully changed password",
+                    auth: true,
+                    userId: user._id,
+                });
+            }).catch((error) => {
+                next(error);
+            });
+        }).catch((error) => {
+            next(error);
+        });
+    } catch( error) {
+        next(error);
+    }
 };
 
 exports.forgot_password = async (req, res, next) => {

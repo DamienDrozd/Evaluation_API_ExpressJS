@@ -39,3 +39,4 @@ class MailClient {
 }
 
 module.exports = MailClient;
+

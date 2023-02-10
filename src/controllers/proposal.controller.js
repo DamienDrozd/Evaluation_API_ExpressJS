@@ -16,8 +16,7 @@ exports.getFreelanceProposals = async (req, res, next) => {
 };
 
 exports.getFreelanceProposal = async (req, res, next) => {
-    Proposal.find({user: req.userToken.userId}).then((proposals) => {
-        let proposal = proposals.find(proposal => proposal._id == req.params.id);
+    Proposal.findOne({user: req.userToken.userId, _id : req.params.id}).then((proposal) => {
         res.send(proposal);
     }).catch((error) => {
         next(error);
@@ -142,11 +141,7 @@ exports.postProposal = async (req, res, next) => {
 };
 
 exports.updateProposal = async (req, res, next) => {
-    Proposal.findById(req.params.id).then((proposal) => {
-        proposal.price = req.body.price;
-        proposal.date.start = req.body.date.start;
-        proposal.date.end = req.body.date.end;
-        proposal.save();
+    Proposal.findByIdAndUpdate(req.params.id, req.body).then((proposal) => {
         res.send(proposal);
     }).catch((error) => {
         next(error);
@@ -203,7 +198,7 @@ exports.getAdminMissionProposal = async (req, res, next) => {
 }
 
 exports.getAdminFreelanceProposal = async (req, res, next) => {
-    Proposal.find().then((proposals) => {
+    Proposal.find({user: req.params.id}).then((proposals) => {
         res.send(proposals);
     }).catch((error) => {
         next(error);
