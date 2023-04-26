@@ -49,6 +49,8 @@ router.delete('/company/', verifyToken, verifyCompany, userController.deleteComp
 
 router.get('/freelance/', userController.getFreelanceUsers);
 
+router.get('/freelance/:id', userController.getFreelanceUser);
+
 router.get('/freelance/search/', userController.searchUsers);
 
 router.get('/freelance/filter/', userController.filterUsers);

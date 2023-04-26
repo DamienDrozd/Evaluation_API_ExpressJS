@@ -4,4 +4,4 @@ const jobSchema = new mongoose.Schema({
     name: { type: String, required: true, unique: true },
 });
 
-module.exports = mongoose.model('job', jobSchema);
+module.exports = mongoose.model('Job', jobSchema);

@@ -21,7 +21,9 @@ exports.register_freelance = async (req, res, next) => {
             isAdmin: false,
             freelance: {
                 price : req.body.price,
-                experience_years: req.body.price
+                experience_years: req.body.experience_years,
+                skills: req.body.skills,
+                jobs: req.body.jobs,
             }, 
             company: null
         });
@@ -109,10 +111,11 @@ exports.register_company = async (req, res, next) => {
                 );
                 mail.send(user.email, "Bienvenue sur Freelance", "Vous êtes maintenant inscrit sur notre site, vous pouvez dès à présent vous connecter et profiter de nos services")
                 res.send({
-                message: "User " + user._id + " successfully registered",
-                auth: true,
-                token: userToken,
-                userId: user._id,
+                    message: "User " + user._id + " successfully registered",
+                    auth: true,
+                    success: true,
+                    token: userToken,
+                    userId: user._id,
                 }); 
             }).catch((error) => {
                 console.log(error);
@@ -128,7 +131,8 @@ exports.register_company = async (req, res, next) => {
 };
 
 exports.login = async (req, res, next) => {
-  console.log(req.body.email)
+    console.log("login");
+    console.log(req.body.email)
     try {
         User.findOne({ email: req.body.email })
             .then((user) => {
@@ -146,23 +150,29 @@ exports.login = async (req, res, next) => {
             }
             const isFreelance = user.freelance != null;
             const isCompany = user.company != null;
+            const isAdmin = user.isAdmin;
             console.log("isFreelance = ", isFreelance);
             console.log("isCompany = ", isCompany);
+            console.log("isAdmin = ", isAdmin);
             let userToken = jwt.sign(
                 {
                     id: user._id,
                     companyId: user.company,
-                    isAdmin: user.isAdmin,
                     isFreelance: isFreelance,
                     isCompany: isCompany, 
+                    isAdmin: isAdmin,   
                 },
                 process.env.JWT_SECRET
             );
             res.send({
                 message: "User " + user._id + " successfully logged in",
                 auth: true,
+                success: true,
                 userId: user._id,
                 token: userToken,
+                isFreelance: isFreelance,
+                isCompany: isCompany, 
+                isAdmin: isAdmin,
             });
             })
         .catch((error) => {
@@ -207,5 +217,5 @@ exports.change_password = async (req, res, next) => {
 };
 
 exports.forgot_password = async (req, res, next) => {
-    return res.send("success");
+    return res.send({message: "email de réinitialisation envoyé !", success: true});
 };

@@ -6,6 +6,8 @@ const Company = require("../models/company.model");
 exports.getAdminUsers = async (req, res, next) => {
     User.find()
     .populate("company")
+    .populate({ path: 'freelance', populate: {path : 'skills'} })
+    .populate({ path: 'freelance', populate: {path : 'jobs'} })
     .then((users) => {
         res.send(users);
     }).catch((error) => {
@@ -17,6 +19,8 @@ exports.getAdminUser = async (req, res, next) => {
     console.log("id : ", req.params.id);
     User.findById(req.params.id)
     .populate("company")
+    .populate({ path: 'freelance', populate: {path : 'skills'} })
+    .populate({ path: 'freelance', populate: {path : 'jobs'} })
     .then((user) => {
         res.send(user);
     }).catch((error) => {
@@ -105,6 +109,8 @@ exports.deleteAdminCompany = async (req, res, next) => {
 exports.getUser = async (req, res, next) => {
     User.findById(req.userToken.id)
     .populate("company")
+    .populate({ path: 'freelance', populate: {path : 'skills'} })
+    .populate({ path: 'freelance', populate: {path : 'jobs'} })
     .then((user) => {
         res.send(user);
     }).catch((error) => {
@@ -116,7 +122,12 @@ exports.getUser = async (req, res, next) => {
 exports.updateUser = async (req, res, next) => {
     User.findByIdAndUpdate(req.userToken.id, req.body)
     .then(() => {
-        User.findById(req.userToken.id).then((user) => {
+        User.findById(req.userToken.id)
+        .populate("company")
+        .populate({ path: 'freelance', populate: {path : 'skills'} })
+        .populate({ path: 'freelance', populate: {path : 'jobs'} })
+        .then((user) => {
+            console.log(user)
             res.send({user : user, message: 'updated'})
         }).catch((error) => {
             next(error);
@@ -185,7 +196,7 @@ exports.updateCompany = async (req, res, next) => {
             .then((newCompany) => {
                 newCompany.save().then(() => {
                     Company.findById(user.company._id).then((company) => {
-                        res.send({company : company, message: 'updated'});
+                        res.send({company : company, message: 'updated', success: true});
                     }).catch((error) => {
                         next(error);
                     });
@@ -225,12 +236,20 @@ exports.deleteCompany = async (req, res, next) => {
 
 exports.searchUsers = async (req, res, next) => {
     // search by firstname, lastname, city, skills, job
-    let searchString = req.body.searchString.toLowerCase();
+    console.log(req.query);
+    if (req.query.searchString == null || req.query?.searchString == "" || req.query?.searchString == undefined) {
+        return res.status(400).send("searchString is required");
+    }
+    let searchString = req.query?.searchString?.toLowerCase();
     let SearchTab = searchString.split(" ");
-    User.find().then((users) => {
-        users = users.filter(user => user.freelance != null);
+    console.log(SearchTab)
+    User.find()
+    .populate({ path: 'freelance', populate: {path : 'skills'} })
+    .populate({ path: 'freelance', populate: {path : 'jobs'} })
+    .then((users) => {
+        users = users. filter(user => user.freelance != null);
         users = users.filter(user => {
-            let userString = user.firstname + " " + user.lastname + " " + user.city + " " + user.freelance.job + " " + user.freelance.skills.join(" ");
+            let userString = user.firstname + " " + user.lastname + " " + user.city + " " + user.freelance.jobs + " " + user.freelance.skills;
             userString = userString.toLowerCase();
             for (let key in SearchTab) {
                 if (!userString.includes(key)) {
@@ -246,7 +265,10 @@ exports.searchUsers = async (req, res, next) => {
 };
 
 exports.filterUsers = async (req, res, next) => {
-    User.find(req.body).then((users) => {
+    User.find(req.body)
+    .populate({ path: 'freelance', populate: {path : 'skills'} })
+    .populate({ path: 'freelance', populate: {path : 'jobs'} })
+    .then((users) => {
         users = users.filter(user => user.freelance != null);
         res.send(users);
     }).catch((error) => {
@@ -255,10 +277,31 @@ exports.filterUsers = async (req, res, next) => {
 };
 
 exports.getFreelanceUsers = async (req, res, next) => {
-    User.find({ freelance: { $ne: null } }).then((users) => {
+    User.find({ freelance: { $ne: null } })
+    .populate({ path: 'freelance', populate: {path : 'skills'} })
+    .populate({ path: 'freelance', populate: {path : 'jobs'} })
+    .then((users) => {
         res.send(users);
     }).catch((error) => {
         next(error);
     }
     );
 };
+
+
+exports.getFreelanceUser = async (req, res, next) => {
+    User.findById(req.params.id)
+    .populate({ path: 'freelance', populate: {path : 'skills'} })
+    .populate({ path: 'freelance', populate: {path : 'jobs'} })
+    .then((user) => {
+        if (user.freelance == null) {
+            res.status(404).send("User is not a freelance");
+        } else {
+            res.send(user);
+        }
+    }).catch((error) => {
+        next(error);
+    }
+    );
+};
+

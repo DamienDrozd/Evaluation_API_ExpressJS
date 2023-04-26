@@ -20,6 +20,7 @@ app.use(express.json());
 
 
 let mongoose_url =  `mongodb+srv://${process.env.MONGO_DB_USER}:${process.env.MONGO_DB_PASSWORD}${process.env.MONGO_DB_CLUSTER}/?retryWrites=true&w=majority`;
+mongoose.set('strictQuery', false);
 mongoose.connect(
  mongoose_url,
 ).then(() => { 

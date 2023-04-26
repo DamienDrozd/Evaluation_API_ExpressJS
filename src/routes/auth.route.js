@@ -10,7 +10,7 @@ router.post('/register/freelance', authController.register_freelance);
 
 router.post('/register/company', authController.register_company);
 
-router.get('/login', authController.login);
+router.post('/login', authController.login);
 
 router.put('/password/change', authController.change_password)
 

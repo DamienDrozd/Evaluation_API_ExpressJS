@@ -6,6 +6,9 @@ const MailClient = require('../functions/mail');
 
 exports.getMissions = async (req, res, next) => {
     Company.findById(req.userToken.companyId)
+    .populate({ path: 'missions', populate: {path : 'skills'} })
+    .populate({ path: 'missions', populate: {path : 'jobs'} })
+    .populate({ path: 'missions', populate: {path : 'proposals'} })
     .then((company) => {
         res.send(company.missions);
     }).catch((error) => {
@@ -25,7 +28,7 @@ exports.getMission = async (req, res, next) => {
 exports.postMission = async (req, res, next) => {
     Company.findById(req.userToken.companyId).then((company) => {
         company.missions.push({
-            name: req.body.name,
+            title: req.body.title,
             description: req.body.description,
             price: req.body.price,
             date: {
@@ -35,6 +38,7 @@ exports.postMission = async (req, res, next) => {
             job: req.body.job,
             skills: req.body.skills
         });
+        company.save();
         res.send(company.missions);
     }).catch((error) => {
         next(error);
@@ -43,18 +47,20 @@ exports.postMission = async (req, res, next) => {
 
 exports.updateMission = async (req, res, next) => {
     Company.findById(req.userToken.companyId).then((company) => {
-        const mission = company.missions.find((mission) => mission._id == req.params.id);
-        mission.name = req.body
-        res.send(mission);
+        const editMission = req.body
+        company.missions = company.missions.filter((mission) => mission._id != req.params.id);
+        company.missions.push(editMission);
+        company.save();
+        res.send(editMission);
     }).catch((error) => {
         next(error);
     });
-
 };
 
 exports.deleteMission = async (req, res, next) => {
     Company.findById(req.userToken.companyId).then((company) => {
         company.missions = company.missions.filter((mission) => mission._id != req.params.id);
+        company.save();
         res.send(company.missions);
     }).catch((error) => {
         next(error);

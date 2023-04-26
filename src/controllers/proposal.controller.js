@@ -1,5 +1,6 @@
 const Company = require("../models/company.model.js");
 const Proposal = require("../models/proposal.model.js");
+const User = require("../models/user.model.js");
 const MailClient = require('../functions/mail');
 
 
@@ -8,15 +9,22 @@ const MailClient = require('../functions/mail');
 //-------------------------Freelance-------------------------------
 
 exports.getFreelanceProposals = async (req, res, next) => {
-    Proposal.find({user: req.userToken.userId}).then((proposals) => {
-        res.send(proposals);
+    Proposal.find({user: req.userToken.id})
+        .populate('company')
+        .then((proposals) => {
+            proposals.forEach((proposal) => {
+                console.log(proposal.company.missions.filter((mission) => mission._id == proposal._id)[0]);
+            });
+            console.log(proposals);
+            console.log(req.userToken.id)
+            res.send(proposals);
     }).catch((error) => {
         next(error);
     });
 };
 
 exports.getFreelanceProposal = async (req, res, next) => {
-    Proposal.findOne({user: req.userToken.userId, _id : req.params.id}).then((proposal) => {
+    Proposal.findOne({user: req.userToken.id, _id : req.params.id}).then((proposal) => {
         res.send(proposal);
     }).catch((error) => {
         next(error);
@@ -25,7 +33,7 @@ exports.getFreelanceProposal = async (req, res, next) => {
 
 exports.acceptProposal = async (req, res, next) => {
     const mail = new MailClient();
-    Proposal.find({user: req.userToken.userId}).then((proposals) => {
+    Proposal.find({user: req.userToken.id}).then((proposals) => {
         let proposal = proposals.find(proposal => proposal._id == req.params.id);
         proposal.status = "accepted";
         Company.findById(proposal.company).then((company) => {
@@ -51,7 +59,7 @@ exports.acceptProposal = async (req, res, next) => {
 
 exports.denyProposal = async (req, res, next) => {
     const mail = new MailClient();
-    Proposal.find({user: req.userToken.userId}).then((proposals) => {
+    Proposal.find({user: req.userToken.id}).then((proposals) => {
         let proposal = proposals.find(proposal => proposal._id == req.params.id);
         proposal.status = "denied";
         Company.findById(proposal.company).then((company) => {
@@ -106,14 +114,15 @@ exports.postProposal = async (req, res, next) => {
     try {
         const mail = new MailClient();
         Company.findById(req.userToken.companyId).then((company) => {
+            console.log(req.params.id);
+            if (req.body.mission_id == null) {
+                res.status(400).send({
+                    message: "You must specify a mission"
+                });
+            }
             Proposal.create({
                 user: req.params.id,
                 company: company._id,
-                price: req.body.price,
-                date: {
-                    start: req.body.date.start,
-                    end: req.body.date.end
-                },
             }).then((proposal) => {
                 if (company.missions.find((mission) => mission._id == req.body.mission_id).proposals.length >= 3) {
                     res.status(400).send({
@@ -122,6 +131,7 @@ exports.postProposal = async (req, res, next) => {
                 } else {
                     company.missions.find((mission) => mission._id == req.body.mission_id).proposals.push(proposal._id);
                     company.save();
+                    console.log(req.params.id);
                     User.findById(req.params.id).then((user) => {
                         mail.send(user.email, "New proposal", "You have a new proposal for your mission " + company.missions.find((mission) => mission._id == req.body.mission_id).title);
                     }).catch((error) => {
