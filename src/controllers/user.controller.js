@@ -1,5 +1,7 @@
 const User = require("../models/user.model");
 const Company = require("../models/company.model");
+const { faker } = require('@faker-js/faker');
+
 
 //-------------------------Admin-------------------------------
 
@@ -281,7 +283,21 @@ exports.getFreelanceUsers = async (req, res, next) => {
     .populate({ path: 'freelance', populate: {path : 'skills'} })
     .populate({ path: 'freelance', populate: {path : 'jobs'} })
     .then((users) => {
-        res.send(users);
+        newUsers = [];
+        users.forEach(user => {
+            newUser = {
+                _id: user._id,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                city: user.city,
+                thumbnail: faker.image.avatar(),
+                phone : user.phone,
+                email : user.email,
+                freelance : user.freelance
+            }
+            newUsers.push(newUser);
+        });
+        res.send(newUsers);
     }).catch((error) => {
         next(error);
     }

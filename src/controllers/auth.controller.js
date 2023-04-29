@@ -103,6 +103,7 @@ exports.register_company = async (req, res, next) => {
                 let userToken = jwt.sign(
                 {
                     id: user._id,
+                    companyId: user.company,
                     isAdmin: user.isAdmin,
                     isFreelance: isFreelance,
                     isCompany: isCompany, 

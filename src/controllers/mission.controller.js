@@ -27,6 +27,9 @@ exports.getMission = async (req, res, next) => {
 
 exports.postMission = async (req, res, next) => {
     Company.findById(req.userToken.companyId).then((company) => {
+        if (company.missions == undefined){
+            company.missions = [];
+        }
         company.missions.push({
             title: req.body.title,
             description: req.body.description,

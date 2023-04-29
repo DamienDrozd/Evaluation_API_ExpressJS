@@ -12,12 +12,19 @@ exports.getFreelanceProposals = async (req, res, next) => {
     Proposal.find({user: req.userToken.id})
         .populate('company')
         .then((proposals) => {
+            const proposalsTab = []
             proposals.forEach((proposal) => {
-                console.log(proposal.company.missions.filter((mission) => mission._id == proposal._id)[0]);
+                const newMission = proposal.company.missions.find((mission) => mission._id == proposal.mission.toString());
+                let newProposal = {
+                    _id: proposal._id,
+                    mission: newMission,
+                    company: proposal.company,
+                    status: proposal.status,
+                    date: proposal.date,
+                }
+                proposalsTab.push(newProposal)
             });
-            console.log(proposals);
-            console.log(req.userToken.id)
-            res.send(proposals);
+            res.send(proposalsTab);
     }).catch((error) => {
         next(error);
     });
@@ -123,6 +130,7 @@ exports.postProposal = async (req, res, next) => {
             Proposal.create({
                 user: req.params.id,
                 company: company._id,
+                mission: req.body.mission_id,
             }).then((proposal) => {
                 if (company.missions.find((mission) => mission._id == req.body.mission_id).proposals.length >= 3) {
                     res.status(400).send({
