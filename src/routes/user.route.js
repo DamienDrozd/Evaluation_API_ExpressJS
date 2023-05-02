@@ -51,9 +51,9 @@ router.get('/freelance/', userController.getFreelanceUsers);
 
 router.get('/freelance/:id', userController.getFreelanceUser);
 
-router.get('/freelance/search/', userController.searchUsers);
+router.get('/freelance/search/:search', userController.searchUsers);
 
-router.get('/freelance/filter/', userController.filterUsers);
+router.post('/freelance/filter/', userController.filterUsers);
 
 
 module.exports = router;

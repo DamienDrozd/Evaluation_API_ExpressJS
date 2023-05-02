@@ -18,7 +18,6 @@ exports.getAdminUsers = async (req, res, next) => {
 };
 
 exports.getAdminUser = async (req, res, next) => {
-    console.log("id : ", req.params.id);
     User.findById(req.params.id)
     .populate("company")
     .populate({ path: 'freelance', populate: {path : 'skills'} })
@@ -32,11 +31,8 @@ exports.getAdminUser = async (req, res, next) => {
 };
 
 exports.updateAdminUser = async (req, res, next) => {
-    console.log("id : ", req.params.id);
-    console.log("body : ", req.body);
     User.findByIdAndUpdate(req.params.id, req.body)
     .then((user) => {
-        console.log(user);
         if (!user) {
             return res.status(404).send({
             message: 'user not found',
@@ -82,7 +78,6 @@ exports.getAdminCompany = async (req, res, next) => {
 exports.updateAdminCompany = async (req, res, next) => {
     Company.findByIdAndUpdate(req.params.id, req.body)
     .then((company) => {
-        console.log(company);
         if (!company) {
             return res.status(404).send({
             message: 'company not found',
@@ -129,7 +124,6 @@ exports.updateUser = async (req, res, next) => {
         .populate({ path: 'freelance', populate: {path : 'skills'} })
         .populate({ path: 'freelance', populate: {path : 'jobs'} })
         .then((user) => {
-            console.log(user)
             res.send({user : user, message: 'updated'})
         }).catch((error) => {
             next(error);
@@ -238,41 +232,140 @@ exports.deleteCompany = async (req, res, next) => {
 
 exports.searchUsers = async (req, res, next) => {
     // search by firstname, lastname, city, skills, job
-    console.log(req.query);
-    if (req.query.searchString == null || req.query?.searchString == "" || req.query?.searchString == undefined) {
+    if (req.params.search == null || req.params?.search == "" || req.params?.search == undefined) {
         return res.status(400).send("searchString is required");
     }
-    let searchString = req.query?.searchString?.toLowerCase();
+    let searchString = req.params?.search?.toLowerCase();
     let SearchTab = searchString.split(" ");
-    console.log(SearchTab)
-    User.find()
+    User.find({ freelance: { $ne: null } })
     .populate({ path: 'freelance', populate: {path : 'skills'} })
     .populate({ path: 'freelance', populate: {path : 'jobs'} })
     .then((users) => {
-        users = users. filter(user => user.freelance != null);
         users = users.filter(user => {
-            let userString = user.firstname + " " + user.lastname + " " + user.city + " " + user.freelance.jobs + " " + user.freelance.skills;
-            userString = userString.toLowerCase();
-            for (let key in SearchTab) {
-                if (!userString.includes(key)) {
-                    return false;
+            let userString = user.firstName + " " + user.lastName + " " + user.city;
+            if (user.freelance.skills !== null && user.freelance.skills !== undefined && user.freelance.skills.length > 0) {
+                for (let skill of user?.freelance?.skills) {
+                    userString += " " + skill.name;
                 }
             }
-            return true;
+            if (user.freelance.jobs !== null && user.freelance.jobs !== undefined && user.freelance.jobs.length > 0){
+                for (let job of user?.freelance?.jobs) {
+                    userString += " " + job.name;
+                }
+            }
+            userString = userString.toLowerCase();
+            for (let key of SearchTab) {
+                if (userString.includes(key)) {
+                    return true;
+                }
+            }
+            return false;
         });
-        res.send(users);
+        let newUsers = addThumbnail(users);
+        res.send(newUsers);
     }).catch((error) => {
         next(error);
     });
 };
 
 exports.filterUsers = async (req, res, next) => {
-    User.find(req.body)
+    User.find({ freelance: { $ne: null } })
     .populate({ path: 'freelance', populate: {path : 'skills'} })
     .populate({ path: 'freelance', populate: {path : 'jobs'} })
     .then((users) => {
-        users = users.filter(user => user.freelance != null);
-        res.send(users);
+        users = users.filter(user => {
+            if (req.body?.skills !== null && req.body?.skills !== undefined && req.body?.skills.length > 0) {
+                let skills = user?.freelance?.skills;
+                if (skills === null || skills === undefined || skills.length === 0) {
+                    return false;
+                }
+                let skillsTab = req.body?.skills;
+                let found = false;
+                for (let skillTab of skillsTab) {
+                    for (let skill of skills) {
+                        if (skill._id === skillTab._id) {
+                            found = true;
+                            break;
+                        }
+                    } 
+                    if (found) {
+                        break;
+                    } else {
+                        return false;
+                    }
+                }
+            }
+            // jobs
+            if (req.body?.jobs !== null && req.body?.jobs !== undefined && req.body?.jobs.length > 0) {
+                let jobs = user?.freelance?.jobs;   
+                if (jobs === null || jobs === undefined || jobs.length === 0) {
+                    return false;
+                }
+                let jobsTab = req.body?.jobs;
+                for (let jobTab of jobsTab) {
+                    let found = false;
+                    for (let job of jobs) {
+                        if (job._id.toString() === jobTab._id) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (found) {
+                        break;
+                    } else {
+                        return false;
+                    }
+                }
+            }
+            // min and max price
+            if (req.body?.price_min !== null && req.body?.price_min !== undefined && req.body?.price_min !== "") {
+                if (user?.freelance?.price === null && user.freelance?.price === undefined) {
+                    return false;
+                }
+                if (user?.freelance?.price < req.body?.price_min) {
+                    return false;
+                }
+            }
+            if (req.body?.price_max !== null && req.body?.price_max !== undefined && req.body?.price_max !== "") {
+                if (user?.freelance?.price === null && user.freelance?.price === undefined) {
+                    return false;
+                }
+                if (user?.freelance?.price > req.body?.price_max) {
+                    return false;
+                }
+            }
+
+            // min and max experience
+            if (req.body?.experience_min !== null && req.body?.experience_min !== undefined && req.body?.experience_min !== "") {
+                if (user?.freelance?.experience_years === null && user?.freelance?.experience_years === undefined) {
+                    return false;
+                }
+                if (user?.freelance?.experience_years < req.body?.experience_min) {
+                    return false;
+                }
+            }
+            if (req.body?.experience_max !== null && req.body?.experience_max !== undefined && req.body?.experience_max !== "") {
+                if (user?.freelance?.experience_years === null && user?.freelance?.experience_years === undefined) {
+                    return false;
+                }
+                if (user?.freelance?.experience_years > req.body?.experience_max) {
+                    return false;
+                }
+            }
+
+            // location
+            if (req.body?.location !== null && req.body?.location !== undefined && req.body?.location !== "") {
+                if (user?.city === null && user?.city === undefined) {
+                    return false;
+                }
+                if (user?.city !== req.body?.location) {
+                    return false;
+                }
+            }
+            return true;
+        });
+        let newUsers = addThumbnail(users);
+        res.send(newUsers);
     }).catch((error) => {
         next(error);
     });
@@ -283,20 +376,7 @@ exports.getFreelanceUsers = async (req, res, next) => {
     .populate({ path: 'freelance', populate: {path : 'skills'} })
     .populate({ path: 'freelance', populate: {path : 'jobs'} })
     .then((users) => {
-        newUsers = [];
-        users.forEach(user => {
-            newUser = {
-                _id: user._id,
-                firstName: user.firstName,
-                lastName: user.lastName,
-                city: user.city,
-                thumbnail: faker.image.avatar(),
-                phone : user.phone,
-                email : user.email,
-                freelance : user.freelance
-            }
-            newUsers.push(newUser);
-        });
+        let newUsers = addThumbnail(users);
         res.send(newUsers);
     }).catch((error) => {
         next(error);
@@ -313,7 +393,8 @@ exports.getFreelanceUser = async (req, res, next) => {
         if (user.freelance == null) {
             res.status(404).send("User is not a freelance");
         } else {
-            res.send(user);
+            let newUser = addThumbnail([user])[0];
+            res.send(newUser);
         }
     }).catch((error) => {
         next(error);
@@ -321,3 +402,20 @@ exports.getFreelanceUser = async (req, res, next) => {
     );
 };
 
+const addThumbnail = (users) => {
+    let newUsers = [];
+    users.forEach(user => {
+        let newUser = {
+            _id: user._id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            city: user.city,
+            thumbnail: faker.image.avatar(),
+            phone : user.phone,
+            email : user.email,
+            freelance : user.freelance
+        }
+        newUsers.push(newUser);
+    });
+    return newUsers;
+}
