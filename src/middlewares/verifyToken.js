@@ -31,7 +31,6 @@ function verifyToken (req, res, next) {
     })
     console.log("Auth success !")
     req.userToken = jwtDecoded;
-    console.log(req.userToken)
     next();
   })
 }

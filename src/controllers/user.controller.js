@@ -109,7 +109,7 @@ exports.getUser = async (req, res, next) => {
     .populate({ path: 'freelance', populate: {path : 'skills'} })
     .populate({ path: 'freelance', populate: {path : 'jobs'} })
     .then((user) => {
-        res.send(user);
+        res.send(addThumnail(user));
     }).catch((error) => {
         next(error);
     }
@@ -124,7 +124,7 @@ exports.updateUser = async (req, res, next) => {
         .populate({ path: 'freelance', populate: {path : 'skills'} })
         .populate({ path: 'freelance', populate: {path : 'jobs'} })
         .then((user) => {
-            res.send({user : user, message: 'updated'})
+            res.send({user : addThumnail(user), message: 'updated'})
         }).catch((error) => {
             next(error);
         });
@@ -136,7 +136,7 @@ exports.updateUser = async (req, res, next) => {
 
 exports.deleteUser = async (req, res, next) => {
     User.findByIdAndDelete(req.userToken.id).then((user) => {
-        res.send({user : user, message: 'deleted'})
+        res.send({user : addThumnail(user), message: 'deleted'})
     }).catch((error) => {
         next(error);
     });
@@ -261,7 +261,7 @@ exports.searchUsers = async (req, res, next) => {
             }
             return false;
         });
-        let newUsers = addThumbnail(users);
+        let newUsers = addThumbnailTab(users);
         res.send(newUsers);
     }).catch((error) => {
         next(error);
@@ -364,7 +364,7 @@ exports.filterUsers = async (req, res, next) => {
             }
             return true;
         });
-        let newUsers = addThumbnail(users);
+        let newUsers = addThumbnailTab(users);
         res.send(newUsers);
     }).catch((error) => {
         next(error);
@@ -376,7 +376,7 @@ exports.getFreelanceUsers = async (req, res, next) => {
     .populate({ path: 'freelance', populate: {path : 'skills'} })
     .populate({ path: 'freelance', populate: {path : 'jobs'} })
     .then((users) => {
-        let newUsers = addThumbnail(users);
+        let newUsers = addThumbnailTab(users);
         res.send(newUsers);
     }).catch((error) => {
         next(error);
@@ -393,7 +393,7 @@ exports.getFreelanceUser = async (req, res, next) => {
         if (user.freelance == null) {
             res.status(404).send("User is not a freelance");
         } else {
-            let newUser = addThumbnail([user])[0];
+            let newUser = addThumbnailTab([user])[0];
             res.send(newUser);
         }
     }).catch((error) => {
@@ -402,20 +402,28 @@ exports.getFreelanceUser = async (req, res, next) => {
     );
 };
 
-const addThumbnail = (users) => {
+const addThumbnailTab = (users) => {
     let newUsers = [];
     users.forEach(user => {
-        let newUser = {
-            _id: user._id,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            city: user.city,
-            thumbnail: faker.image.avatar(),
-            phone : user.phone,
-            email : user.email,
-            freelance : user.freelance
-        }
-        newUsers.push(newUser);
+        newUsers.push(addThumnail(user));
     });
     return newUsers;
+}
+
+const addThumnail = (user) => {
+    let newUser = {
+        _id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        address: user.address,
+        city: user.city,
+        postcode: user.postcode,
+        phone : user.phone,
+        email : user.email,
+        thumbnail: faker.image.avatar(),
+        isAdmin : user.isAdmin,
+        freelance : user.freelance,
+        company : user.company
+    }
+    return newUser;
 }

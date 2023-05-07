@@ -137,3 +137,61 @@ exports.getAdminCompanyMission = async (req, res, next) => {
         next(error);
     });
 };
+
+exports.getAdminMissions = async (req, res, next) => {
+    console.log("getAdminMissions");
+    Company.find().then((companies) => {
+        let missions = [];
+        companies.forEach((company) => {
+            company.missions.forEach((mission) => {
+                missions.push(mission);
+            });
+        });
+        res.send(missions);
+    }).catch((error) => {   
+        next(error);
+    }
+    );
+}
+
+exports.getAdminMission = async (req, res, next) => {
+    Company.find().then((companies) => {
+        let mission = null;
+        companies.forEach((company) => {
+            company.missions.forEach((company_mission) => {
+                if (company_mission._id == req.params.id){
+                    mission = company_mission;
+                }
+            }); 
+        });
+        res.send(mission);
+    }).catch((error) => {
+        next(error);
+    });
+};
+
+exports.deleteAdminMission = async (req, res, next) => {
+    Company.find().then((companies) => {
+        companies.forEach((company) => {
+            company.missions = company.missions.filter((mission) => mission._id != req.params.id);
+            company.save();
+        });
+        res.send(companies);
+    }).catch((error) => {
+        next(error);
+    }); 
+}
+
+exports.updateAdminMission = async (req, res, next) => {
+    Company.find().then((companies) => {
+        companies.forEach((company) => {
+            const editMission = req.body
+            company.missions = company.missions.filter((mission) => mission._id != req.params.id);
+            company.missions.push(editMission);
+            company.save();
+        });
+        res.send(companies);
+    }).catch((error) => {
+        next(error);
+    }); 
+}

@@ -2,7 +2,6 @@ const express = require('express');
 
 const router = express.Router();
 const missionController = require('../controllers/mission.controller');
-const proposalController = require('../controllers/proposal.controller');
 const verifyToken = require('../middlewares/verifyToken');
 const verifyCompany = require('../middlewares/verifyCompany');
 const verifyAdmin = require('../middlewares/verifyAdmin');
@@ -32,5 +31,13 @@ router.get('/admin/freelance/:id', verifyToken, verifyAdmin, missionController.g
 
 router.get('/admin/company/:id', verifyToken, verifyAdmin, missionController.getAdminCompanyMission);
 
+router.get('/admin', verifyToken, verifyAdmin, missionController.getAdminMissions);
 
-module.exports = router;
+router.get('/admin/:id', verifyToken, verifyAdmin, missionController.getAdminMission);
+
+router.put('/admin/:id', verifyToken, verifyAdmin, missionController.updateAdminMission);
+
+router.delete('/admin/:id', verifyToken, verifyAdmin, missionController.deleteAdminMission);    
+
+ 
+module.exports = router; 

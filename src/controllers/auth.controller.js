@@ -16,7 +16,7 @@ exports.register_freelance = async (req, res, next) => {
             password: hashedPassword,
             address: req.body.address,
             city: req.body.city,
-            postcode: req.body.postCode,
+            postcode: req.body.postcode,
             phone: req.body.phone,
             isAdmin: false,
             freelance: {
@@ -28,7 +28,7 @@ exports.register_freelance = async (req, res, next) => {
             company: null
         });
 
-        console.log(mail);
+        console.log("newUser = ", newUser);
 
         
         newUser.save()
@@ -70,7 +70,7 @@ exports.register_company = async (req, res, next) => {
             password: hashedPassword,
             address: req.body.address,
             city: req.body.city,
-            postcode: req.body.postCode,
+            postcode: req.body.postcode,
             phone: req.body.phone,
             isAdmin: false,
             // freelance: null,
@@ -83,7 +83,7 @@ exports.register_company = async (req, res, next) => {
             siret: req.body.companySiret,
             address: req.body.companyAddress,
             city: req.body.companyCity,
-            postcode: req.body.companyPostCode, 
+            postcode: req.body.companyPostcode, 
         });
         console.log(newCompany);
         Company.findOne({"siret" : req.body.companySiret}).then( async (company) =>
